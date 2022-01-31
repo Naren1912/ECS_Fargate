@@ -28,15 +28,7 @@ module "ecs" {
 
   default_capacity_provider_strategy = [
     {
-      capacity_provider = "var.capacity_provider,terraform.workspace"
-
-      variable "capacity_provider" {
-        type = "map"
-
-        default = {
-          dev     = "FARGATE_SPOT"
-          prd     = "FARGATE"
-        }
+      capacity_provider = env_type == "dev" ? "FARGATE_SPOT" : "FARGATE" 
     }
   ]
 
