@@ -9,10 +9,10 @@ AcmCertificateArn = "arn:aws:acm:eu-west-1:8877665544:certificate/123456789012-1
 
 # Input from SSM paramter store
 VpcIdSSM = /mmt/vpc/vpc_id
-PrivateSubnetIdSSM = /mmt/subnets/private/subnet-ids
-PublicSubnetIdSSM = /mmt/subnets/public/subnet-ids
+PrivateSubnetIdsSSM = /mmt/subnets/private/subnet-ids
+PublicSubnetIdsSSM = /mmt/subnets/public/subnet-ids
 Route53HostedZoneIdSSM = /mmt/dns/r53_zone_id
 Route53HostedZoneNameSSM = /mmt/dns/r53_zone_name
 AcmCertificateArnSSM = /mmt/acm/tech_test_ssl_arn
 
-#env_type = "prod" # default 'dev' 
+#env_type = "prod" # default 'dev'
