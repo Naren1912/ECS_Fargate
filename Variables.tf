@@ -25,3 +25,35 @@ variable "Route53HostedZoneName" {
 variable "AcmCertificateArn" {
   type = list(string)
 }
+
+
+
+variable "VpcIdSSM" {
+    description = "Main VPC"
+}
+
+variable "PublicSubnetIdsSSM" {
+  type = map(string)
+}
+
+variable "PrivateSubnetIdsSSM" {
+  type = map(string)
+}
+
+variable "Route53HostedZoneIdSSM" {
+  type = map(string)
+}
+
+variable "Route53HostedZoneNameSSM" {
+  type = list(string)
+}
+
+
+variable "AcmCertificateArnSSM" {
+  type = list(string)
+}
+
+variable "env_type" {
+    type = string
+    default = "dev"
+}

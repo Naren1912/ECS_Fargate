@@ -7,10 +7,15 @@ terraform {
   }
 }
 
+data "aws_ssm_parameters_by_path" "VpcIdSSM" {
+  count = var.VpcIdSSM ? == "" 0 : 1
+  path = var.VpcIdSSM
+}
+
 module "ecs_cluster" {
 
   name = "app-dev"
-  vpc_id      = var.VpcId
+  vpc_id      = var.VpcIdSSM  == ""  ?  var.VpcId : data.aws_ssm_parameters_by_path.VpcIdSSM
   vpc_subnets = var.PrivateSubnetIds
   tags        = {
     Environment = "dev"
@@ -19,8 +24,9 @@ module "ecs_cluster" {
 }
 
 module "ecs" {
+  source = "terraform-aws-modules/ecs/aws"
 
-  name = "my-ecs"
+  name = "app-dev"
 
   container_insights = true
 
@@ -28,21 +34,15 @@ module "ecs" {
 
   default_capacity_provider_strategy = [
     {
-      capacity_provider = "var.capacity_provider,terraform.workspace"
-
-      variable "capacity_provider" {
-        type = "map"
-
-        default = {
-          dev     = "FARGATE_SPOT"
-          prd     = "FARGATE"
-        }
+      capacity_provider = env_type == "dev" ? "FARGATE_SPOT" : "FARGATE" 
     }
   ]
 
+  tags = {
+    Environment = env_type == "dev" ? "Development" : "Production"
+  }
 }
-
-
+    
 resource "aws_ecs_cluster_capacity_providers" "example" {
   cluster_name = "app-dev"
 
@@ -74,8 +74,8 @@ resource "aws_ecs_task_definition" "app" {
   container_definitions = <<EOF
 [
   {
-    "name": "nginx",
-    "image": "nginx:1.13-alpine",
+    "name": "httpd",
+    "image": "httpd",
     "essential": true,
     "portMappings": [
       {
