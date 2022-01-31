@@ -52,3 +52,8 @@ variable "Route53HostedZoneNameSSM" {
 variable "AcmCertificateArnSSM" {
   type = list(string)
 }
+
+variable "env_type" {
+    type = string
+    default = "dev"
+}
