@@ -8,36 +8,45 @@ terraform {
 }
 
 data "aws_ssm_parameters_by_path" "VpcIdSSM" {
-  count = var.VpcIdSSM ? == "" 0 : 1
+  count = "${var.VpcIdSSM == "" ? 0 : 1}"
   path = var.VpcIdSSM
 }
 
-module "ecs_cluster" {
+data "aws_ssm_parameters_by_path" "PrivateSubnetIdSSM" {
+  count = "${var.PrivateSubnetIdSSM == "" ? 0 : 1}"
+  path = var.PrivateSubnetIdSSM
+}
 
+data "aws_ssm_parameters_by_path" "PublicSubnetIdSSM" {
+  count = "${var.PublicSubnetIdSSM == "" ? 0 : 1}"
+  path = var.PublicSubnetIdSSM
+}
+
+data "aws_ssm_parameters_by_path" "AcmCertificateArnSSM" {
+  count = "${var.AcmCertificateArnSSM == "" ? 0 : 1}"
+  path = var.AcmCertificateArnSSM
+}
+
+module "ecs_cluster" {
+  source = "anrim/ecs/aws//modules/cluster"
   name = "app-dev"
   vpc_id      = var.VpcIdSSM  == ""  ?  var.VpcId : data.aws_ssm_parameters_by_path.VpcIdSSM
-  vpc_subnets = var.PrivateSubnetIds
+  vpc_subnets = var.PrivateSubnetIdsSSM  == ""  ?  var.PrivateSubnetIds : data.aws_ssm_parameters_by_path.PrivateSubnetIdsSSM
   tags        = {
-    Environment = "dev"
-    Owner = "me"
+    Owner = "Narendra"
   }
 }
 
 module "ecs" {
   source = "terraform-aws-modules/ecs/aws"
-
   name = "app-dev"
-
   container_insights = true
-
   capacity_providers = ["FARGATE", "FARGATE_SPOT"]
-
   default_capacity_provider_strategy = [
     {
       capacity_provider = env_type == "dev" ? "FARGATE_SPOT" : "FARGATE" 
     }
   ]
-
   tags = {
     Environment = env_type == "dev" ? "Development" : "Production"
   }
@@ -45,9 +54,7 @@ module "ecs" {
     
 resource "aws_ecs_cluster_capacity_providers" "example" {
   cluster_name = "app-dev"
-
   capacity_providers = ["FARGATE"]
-
   default_capacity_provider_strategy {
     base              = 1
     weight            = 100
@@ -56,17 +63,16 @@ resource "aws_ecs_cluster_capacity_providers" "example" {
 }
 
 module "alb" {
-
+  source = "anrim/ecs/aws//modules/alb"
   name            = "app-dev"
   host_name       = "app"
   domain_name     = "example.com"
-  certificate_arn = var.AcmCertificateArn
+  certificate_arn = var.AcmCertificateArnSSM  == ""  ?  var.AcmCertificateArn : data.aws_ssm_parameters_by_path.AcmCertificateArnSSM
   tags            = {
-    Environment = "dev"
-    Owner = "me"
+    Owner = "Narendra"
   }
-  vpc_id      = var.VpcId
-  vpc_subnets = var.PublicSubnetIds
+  vpc_id      = var.VpcIdSSM  == ""  ?  var.VpcId : data.aws_ssm_parameters_by_path.VpcIdSSM
+  vpc_subnets = var.PublicSubnetIdsSSM  == ""  ?  var.PublicSubnetIds : data.aws_ssm_parameters_by_path.PublicSubnetIdsSSM
 }
 
 resource "aws_ecs_task_definition" "app" {
@@ -107,7 +113,6 @@ module "ecs_service_app" {
   log_groups           = ["app-dev-nginx"]
   task_definition_arn  = "${aws_ecs_task_definition.app.arn}"
   tags                 = {
-    Environment = "dev"
-    Owner = "me"
+    Owner = "Narendra"
   }
-}}
+}
