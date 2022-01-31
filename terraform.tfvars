@@ -14,3 +14,5 @@ PublicSubnetIdSSM = /mmt/subnets/public/subnet-ids
 Route53HostedZoneIdSSM = /mmt/dns/r53_zone_id
 Route53HostedZoneNameSSM = /mmt/dns/r53_zone_name
 AcmCertificateArnSSM = /mmt/acm/tech_test_ssl_arn
+
+#env_type = "prod" # default 'dev' 
